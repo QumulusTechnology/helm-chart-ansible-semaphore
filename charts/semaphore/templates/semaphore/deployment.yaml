@@ -24,7 +24,18 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ['sh', '-c']
           args:
-            - while ! nc -w 1 "{{- include "semaphore.database.name" . }}" "{{- .Values.database.service.port }}" ; do echo "waiting for database"; sleep 1; done; echo "Database responded"
+            - while ! nc -w 1 "${POSTGRES_HOST}" "${POSTGRES_PORT}" ; do echo "waiting for database"; sleep 1; done; echo "Database responded"
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.database.secret.name }}"
+                  key: "{{ .Values.database.secret.keys.host }}"
+            - name: POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.database.secret.name }}"
+                  key: "{{ .Values.database.secret.keys.port }}"
         - name: create-config-file
           image: alpine:latest
           imagePullPolicy: Always
